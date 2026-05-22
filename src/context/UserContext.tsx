@@ -8,7 +8,7 @@ import React, {
 import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 
-const server = "http://localhost:5000";
+const server =  "http://18.201.42.223:5000";
 
 export interface User {
   _id: string;

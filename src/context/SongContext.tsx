@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import axios from "axios";
 
-const server = "http://localhost:8000";
+const server = "http://18.201.42.223:8000";
 
 
 export interface Song {
