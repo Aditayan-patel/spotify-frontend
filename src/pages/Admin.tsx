@@ -79,11 +79,8 @@ const Admin = () => {
       const { data } = await axios.post(`${server}/api/v1/song/new`, formData, {
         headers: { token: localStorage.getItem("token") },
         timeout: 600000,
-        onUploadProgress: (progressEvent) => {
-          const percent = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total ?? 1),
-          );
-          // optional: setUploadProgress(percent);
+        onUploadProgress: (_progressEvent) => {
+          // Upload progress tracking — use _progressEvent.loaded / _progressEvent.total if needed
         },
       });
       toast.success(data.message);
