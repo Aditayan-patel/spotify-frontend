@@ -246,7 +246,7 @@ const Admin = () => {
       </header>
 
       {/* Main Content */}
-      <main className="main-content" style={{ flex: 1, marginLeft: 0, padding: "24px", paddingTop: 80, maxWidth: "100%" }}>
+      <main className="main-content" style={{ flex: 1, marginLeft: 0, padding: "24px", paddingTop: 80, paddingBottom: 120, maxWidth: "100%" }}>
 
         {/* ✅ Desktop top bar — page title + "Back to App" button right side pe */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>

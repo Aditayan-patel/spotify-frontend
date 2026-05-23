@@ -18,7 +18,7 @@ const Home = () => {
   };
 
   // Har chunk mein maximum 10 songs honge
-  const songRows = chunkSongs(songs || [], 8);
+  const songRows = chunkSongs(songs || [], 10);
 
   return (
     <div>
