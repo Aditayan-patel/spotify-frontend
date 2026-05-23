@@ -5,7 +5,7 @@ import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const server = "http://18.201.42.223:7000";
+const server = "https://spotify-aditayan.duckdns.org";
 
 type Tab = "dashboard" | "addAlbum" | "addSong" | "albums" | "songs";
 
