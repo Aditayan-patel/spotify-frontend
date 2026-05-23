@@ -5,7 +5,7 @@ import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-const server =  "http://18.201.42.223:7000";
+const server = "http://18.201.42.223:7000";
 
 type Tab = "dashboard" | "addAlbum" | "addSong" | "albums" | "songs";
 
@@ -17,25 +17,21 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Album form states
   const [albumTitle, setAlbumTitle] = useState("");
   const [albumDescription, setAlbumDescription] = useState("");
   const [albumFile, setAlbumFile] = useState<File | null>(null);
   const [albumPreview, setAlbumPreview] = useState<string | null>(null);
 
-  // Song form states
   const [songTitle, setSongTitle] = useState("");
   const [songDescription, setSongDescription] = useState("");
   const [album, setAlbum] = useState("");
   const [songFile, setSongFile] = useState<File | null>(null);
 
-  // Thumbnail state
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailTargetId, setThumbnailTargetId] = useState<string | null>(null);
 
   const [btnLoading, setBtnLoading] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-
 
   const albumFileHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -79,21 +75,13 @@ const Admin = () => {
       const { data } = await axios.post(`${server}/api/v1/song/new`, formData, {
         headers: { token: localStorage.getItem("token") },
         timeout: 600000,
-        onUploadProgress: (_progressEvent) => {
-          // Upload progress tracking — use _progressEvent.loaded / _progressEvent.total if needed
-        },
       });
       toast.success(data.message);
       fetchSongs();
-      setSongTitle("");
-      setSongDescription("");
-      setSongFile(null);
-      setAlbum("");
+      setSongTitle(""); setSongDescription(""); setSongFile(null); setAlbum("");
     } catch (error: any) {
       toast.error(error.response?.data?.message || "An error occurred");
-    } finally {
-      setBtnLoading(false);
-    }
+    } finally { setBtnLoading(false); }
   };
 
   const addThumbnailHandler = async (id: string) => {
@@ -163,13 +151,14 @@ const Admin = () => {
       )}
 
       {/* Sidebar */}
-      <aside style={{
-        width: 240, background: "#0f0f0f", borderRight: "1px solid #1a1a1a",
-        display: "flex", flexDirection: "column", padding: "24px 0",
-        position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 50,
-        transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
-        transition: "transform 0.3s ease",
-      }}
+      <aside
+        style={{
+          width: 240, background: "#0f0f0f", borderRight: "1px solid #1a1a1a",
+          display: "flex", flexDirection: "column", padding: "24px 0",
+          position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 50,
+          transform: sidebarOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.3s ease",
+        }}
         className="lg-sidebar"
       >
         {/* Logo */}
@@ -205,18 +194,9 @@ const Admin = () => {
           ))}
         </nav>
 
-        {/* Bottom */}
-        <div style={{ padding: "16px 24px", borderTop: "1px solid #1a1a1a" }}>
-          <Link to="/" style={{
-            display: "flex", alignItems: "center", gap: 8, textDecoration: "none",
-            color: "#b3b3b3", fontSize: 13, padding: "8px 0",
-          }}>
-            ← Back to App
-          </Link>
-        </div>
+        {/* ✅ "Back to App" HATAYA sidebar bottom se */}
       </aside>
 
-      {/* Desktop sidebar always visible via class */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
         @media (min-width: 1024px) {
@@ -234,20 +214,58 @@ const Admin = () => {
         .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         input[type="file"].form-input { padding: 10px 14px; }
         select.form-input option { background: #1a1a1a; }
+        .back-btn:hover { background: #1a1a1a !important; color: #fff !important; }
       `}</style>
 
       {/* Mobile Header */}
-      <header className="mobile-header" style={{
-        position: "fixed", top: 0, left: 0, right: 0, height: 56,
-        background: "#0f0f0f", borderBottom: "1px solid #1a1a1a",
-        display: "flex", alignItems: "center", padding: "0 16px", zIndex: 30, gap: 12,
-      }}>
+      <header
+        className="mobile-header"
+        style={{
+          position: "fixed", top: 0, left: 0, right: 0, height: 56,
+          background: "#0f0f0f", borderBottom: "1px solid #1a1a1a",
+          display: "flex", alignItems: "center", padding: "0 16px",
+          zIndex: 30, gap: 12,
+        }}
+      >
         <button onClick={() => setSidebarOpen(true)} style={{ background: "none", border: "none", color: "#fff", fontSize: 22, cursor: "pointer", padding: 4 }}>☰</button>
         <span style={{ fontWeight: 700, fontSize: 16 }}>SoundAdmin</span>
+
+        {/* ✅ "Back to App" — mobile header mein, right side pe */}
+        <Link
+          to="/"
+          className="back-btn"
+          style={{
+            marginLeft: "auto", display: "flex", alignItems: "center", gap: 6,
+            textDecoration: "none", color: "#b3b3b3", fontSize: 12,
+            background: "#141414", border: "1px solid #2a2a2a",
+            borderRadius: 20, padding: "5px 12px", transition: "all 0.15s",
+          }}
+        >
+          ← App
+        </Link>
       </header>
 
       {/* Main Content */}
       <main className="main-content" style={{ flex: 1, marginLeft: 0, padding: "24px", paddingTop: 80, maxWidth: "100%" }}>
+
+        {/* ✅ Desktop top bar — page title + "Back to App" button right side pe */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
+          <div style={{ fontSize: 13, color: "#535353" }}>
+            Admin Panel &rsaquo; <span style={{ color: "#b3b3b3" }}>{navItems.find(n => n.id === activeTab)?.label}</span>
+          </div>
+          <Link
+            to="/"
+            className="back-btn"
+            style={{
+              display: "flex", alignItems: "center", gap: 8,
+              textDecoration: "none", color: "#b3b3b3", fontSize: 13,
+              background: "#141414", border: "1px solid #2a2a2a",
+              borderRadius: 20, padding: "8px 18px", transition: "all 0.15s",
+            }}
+          >
+            ← Back to App
+          </Link>
+        </div>
 
         {/* Dashboard Tab */}
         {activeTab === "dashboard" && (
@@ -255,7 +273,6 @@ const Admin = () => {
             <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 4 }}>Welcome back 👋</h1>
             <p style={{ color: "#535353", marginBottom: 32, fontSize: 14 }}>Here's what's happening with your music library.</p>
 
-            {/* Stats */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16, marginBottom: 40 }}>
               {[
                 { label: "Total Albums", value: albums?.length ?? 0, icon: "📀", color: "#1db954" },
@@ -270,7 +287,6 @@ const Admin = () => {
               ))}
             </div>
 
-            {/* Quick Actions */}
             <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16 }}>Quick Actions</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
               {[
@@ -302,7 +318,6 @@ const Admin = () => {
 
             <form onSubmit={addAlbumHandler}>
               <div style={{ display: "flex", gap: 20, marginBottom: 24, alignItems: "flex-start" }}>
-                {/* Preview */}
                 <div style={{ width: 120, height: 120, background: "#1a1a1a", borderRadius: 10, border: "1px solid #2a2a2a", overflow: "hidden", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {albumPreview ? <img src={albumPreview} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 32 }}>📀</span>}
                 </div>
@@ -311,12 +326,10 @@ const Admin = () => {
                   <input className="form-input" type="text" placeholder="Description" value={albumDescription} onChange={(e) => setAlbumDescription(e.target.value)} required />
                 </div>
               </div>
-
               <div style={{ marginBottom: 24 }}>
                 <label style={{ display: "block", fontSize: 12, color: "#535353", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Cover Image</label>
                 <input className="form-input" type="file" accept="image/*" onChange={albumFileHandler} required />
               </div>
-
               <button className="submit-btn" type="submit" disabled={btnLoading}>
                 {btnLoading ? "Uploading..." : "Create Album"}
               </button>
@@ -347,7 +360,6 @@ const Admin = () => {
                     </div>
                   )}
                 </div>
-
                 <button className="submit-btn" type="submit" disabled={btnLoading} style={{ marginTop: 8 }}>
                   {btnLoading ? "Uploading... Please wait" : "Add Song"}
                 </button>
@@ -375,12 +387,8 @@ const Admin = () => {
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.8))" }} />
                   </div>
                   <div style={{ padding: "12px 14px 14px" }}>
-                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {e.title}
-                    </div>
-                    <div style={{ fontSize: 12, color: "#535353", marginBottom: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                      {e.description}
-                    </div>
+                    <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
+                    <div style={{ fontSize: 12, color: "#535353", marginBottom: 12, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</div>
                     {deleteConfirm === e.id ? (
                       <div style={{ display: "flex", gap: 6 }}>
                         <button onClick={() => deleteAlbum(e.id)} disabled={btnLoading} style={{ flex: 1, background: "#e22c29", color: "#fff", border: "none", borderRadius: 6, padding: "6px 0", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Confirm</button>
@@ -419,25 +427,21 @@ const Admin = () => {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {songs?.map((e: any, i: number) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 12px", borderRadius: 8, background: "transparent", transition: "background 0.15s" }}
+                <div
+                  key={i}
+                  style={{ display: "flex", alignItems: "center", gap: 14, padding: "10px 12px", borderRadius: 8, background: "transparent", transition: "background 0.15s" }}
                   onMouseEnter={(ev) => (ev.currentTarget.style.background = "#141414")}
-                  onMouseLeave={(ev) => (ev.currentTarget.style.background = "transparent")}>
-
-                  {/* Track number */}
+                  onMouseLeave={(ev) => (ev.currentTarget.style.background = "transparent")}
+                >
                   <span style={{ width: 24, textAlign: "right", fontSize: 13, color: "#535353", flexShrink: 0 }}>{i + 1}</span>
-
-                  {/* Thumbnail */}
                   <div style={{ width: 44, height: 44, borderRadius: 6, overflow: "hidden", flexShrink: 0, background: "#1a1a1a", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {e.thumbnail ? <img src={e.thumbnail} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: 18 }}>🎵</span>}
                   </div>
-
-                  {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 500, fontSize: 14, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.title}</div>
                     <div style={{ fontSize: 12, color: "#535353", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.description}</div>
                   </div>
 
-                  {/* No thumbnail - add one */}
                   {!e.thumbnail && (
                     <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
                       {thumbnailTargetId === e.id ? (
@@ -456,7 +460,6 @@ const Admin = () => {
                     </div>
                   )}
 
-                  {/* Delete */}
                   {deleteConfirm === e.id ? (
                     <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                       <button onClick={() => deleteSong(e.id)} disabled={btnLoading} style={{ background: "#e22c29", color: "#fff", border: "none", borderRadius: 6, padding: "6px 10px", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>Del</button>

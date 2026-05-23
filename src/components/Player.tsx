@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useSongData } from "../context/SongContext";
 import { GrChapterNext, GrChapterPrevious } from "react-icons/gr";
 import { FaPause, FaPlay, FaVolumeUp, FaVolumeMute } from "react-icons/fa";
@@ -12,19 +12,15 @@ const Player = () => {
     setIsPlaying,
     prevSong,
     nextSong,
+    audioRef, // ✅ Context se persistent audioRef lo
   } = useSongData();
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  // ✅ audioRef ab local nahi — context se aa raha hai
+  // const audioRef = useRef<HTMLAudioElement | null>(null); ← HATAYA
 
   const [volume, setVolume] = useState<number>(1);
   const [progress, setProgress] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
-
-  // BUG FIX 1: isPlayingRef — canplay listener ke andar fresh value milegi
-  const isPlayingRef = useRef(isPlaying);
-  useEffect(() => {
-    isPlayingRef.current = isPlaying;
-  }, [isPlaying]);
 
   // Audio events: metadata, timeupdate, ended
   useEffect(() => {
@@ -44,9 +40,9 @@ const Player = () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, [song, nextSong]);
+  }, [song, nextSong, audioRef]);
 
-  // BUG FIX 2: selectedSong change hone pe fetch karo — lekin sirf jab selectedSong truthy ho
+  // selectedSong change hone pe fetch karo
   useEffect(() => {
     if (selectedSong) {
       fetchSingleSong();
@@ -54,25 +50,11 @@ const Player = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSong]);
 
-  // BUG FIX 1 (continued): Naya song load hone par — ref se isPlaying check karo (stale closure avoid)
+  // Progress reset when new song loads
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !song) return;
-
-    setProgress(0);
-
-    const handleCanPlay = async () => {
-      if (isPlayingRef.current) {
-        try {
-          await audio.play();
-        } catch (error) {
-          console.error("Auto-play error:", error);
-        }
-      }
-    };
-
-    audio.addEventListener("canplay", handleCanPlay);
-    return () => audio.removeEventListener("canplay", handleCanPlay);
+    if (song) {
+      setProgress(0);
+    }
   }, [song]);
 
   // Volume sync
@@ -80,7 +62,7 @@ const Player = () => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
     }
-  }, [volume]);
+  }, [volume, audioRef]);
 
   const handelPlayPause = async () => {
     const audio = audioRef.current;
@@ -121,6 +103,8 @@ const Player = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50">
+      {/* ✅ <audio> JSX element HATAYA — ab Context mein new Audio() se manage ho raha hai */}
+
       {/* Main Player */}
       <div
         className="
@@ -136,11 +120,6 @@ const Player = () => {
           overflow-hidden
         "
       >
-        {/* Audio element — key prop forces remount on new song src */}
-        {song.audio && (
-          <audio ref={audioRef} src={song.audio}  />
-        )}
-
         {/* ── MOBILE LAYOUT ── */}
         <div className="flex md:hidden w-full items-center">
           <div className="flex-shrink-0">
@@ -168,7 +147,11 @@ const Player = () => {
                 transition-all duration-200
               "
             >
-              {isPlaying ? <FaPause size={14} /> : <FaPlay size={14} className="ml-0.5" />}
+              {isPlaying ? (
+                <FaPause size={14} />
+              ) : (
+                <FaPlay size={14} className="ml-0.5" />
+              )}
             </button>
 
             <button
@@ -242,7 +225,7 @@ const Player = () => {
                 type="range"
                 min="0"
                 max="100"
-                value={(duration > 0 ? (progress / duration) * 100 : 0)}
+                value={duration > 0 ? (progress / duration) * 100 : 0}
                 onChange={durationChange}
                 className="
                   flex-1 min-w-0 h-1 rounded-full
@@ -262,7 +245,11 @@ const Player = () => {
               onClick={() => setVolume(volume === 0 ? 1 : 0)}
               className="text-zinc-400 hover:text-white transition"
             >
-              {volume === 0 ? <FaVolumeMute size={14} /> : <FaVolumeUp size={14} />}
+              {volume === 0 ? (
+                <FaVolumeMute size={14} />
+              ) : (
+                <FaVolumeUp size={14} />
+              )}
             </button>
             <input
               type="range"
@@ -291,7 +278,7 @@ const Player = () => {
             type="range"
             min="0"
             max="100"
-            value={(duration > 0 ? (progress / duration) * 100 : 0)}
+            value={duration > 0 ? (progress / duration) * 100 : 0}
             onChange={durationChange}
             className="
               flex-1 h-1 rounded-full

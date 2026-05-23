@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import Album from "./pages/Album";
 import PlayList from "./pages/PlayList";
 import Admin from "./pages/Admin";
+import Player from "./components/Player"; // ← ADD THIS IMPORT
 
 const App = () => {
   const { isAuth, loading } = useUserData();
@@ -19,14 +20,14 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/album/:id" element={<Album />} />
-            <Route path="/playlist" element={isAuth ? <PlayList/> : <Login />} />
-            <Route path="/admin/dashboard" element={isAuth ? <Admin/> : <Login />} />
+            <Route path="/playlist" element={isAuth ? <PlayList /> : <Login />} />
+            <Route path="/admin/dashboard" element={isAuth ? <Admin /> : <Login />} />
             <Route path="/login" element={isAuth ? <Home /> : <Login />} />
-            <Route
-              path="/register"
-              element={isAuth ? <Home /> : <Register />}
-            />
+            <Route path="/register" element={isAuth ? <Home /> : <Register />} />
           </Routes>
+
+          {/* ✅ Player Routes ke BAHAR hai — page change pe unmount nahi hoga */}
+          <Player />
         </BrowserRouter>
       )}
     </>

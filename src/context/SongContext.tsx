@@ -3,13 +3,13 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import axios from "axios";
 
 const server = "http://18.201.42.223:8000";
-
 
 export interface Song {
   id: string;
@@ -42,8 +42,9 @@ interface SongContextType {
   albumSong: Song[];
   albumData: Album | null;
   fetchAlbumsSongs: (id: string) => Promise<void>;
-  fetchSongs: ()=> Promise<void>;
-  fetchAlbums: ()=> Promise<void>;
+  fetchSongs: () => Promise<void>;
+  fetchAlbums: () => Promise<void>;
+  audioRef: React.RefObject<HTMLAudioElement>; // ✅ ADD: Persistent audio element
 }
 
 const SongContext = createContext<SongContextType | undefined>(undefined);
@@ -58,6 +59,48 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
   const [selectedSong, setSelectedSong] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [song, setSong] = useState<Song | null>(null);
+  const [index, setIndex] = useState<number>(0);
+  const [albumSong, setAlbumSong] = useState<Song[]>([]);
+  const [albumData, setAlbumData] = useState<Album | null>(null);
+
+  // ✅ Persistent Audio Element — page change pe destroy nahi hoga
+  const audioRef = useRef<HTMLAudioElement>(new Audio());
+
+  // ✅ isPlaying ka ref — stale closure se bachne ke liye
+  const isPlayingRef = useRef(isPlaying);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+
+  // ✅ Song change hone pe audio src update karo — naya Audio() mat banao
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !song?.audio) return;
+
+    audio.src = song.audio;
+    audio.load();
+
+    const handleCanPlay = async () => {
+      if (isPlayingRef.current) {
+        try {
+          await audio.play();
+        } catch (error) {
+          console.error("Auto-play error:", error);
+        }
+      }
+    };
+
+    audio.addEventListener("canplay", handleCanPlay);
+    return () => audio.removeEventListener("canplay", handleCanPlay);
+  }, [song]);
+
+  // ✅ Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      audioRef.current.pause();
+    };
+  }, []);
 
   const fetchSongs = useCallback(async () => {
     setLoading(true);
@@ -73,13 +116,11 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const [song, setSong] = useState<Song | null>(null);
-
   const fetchSingleSong = useCallback(async () => {
     if (!selectedSong) return;
     try {
       const { data } = await axios.get<Song>(
-        `${server}/api/v1/song/${selectedSong}`,
+        `${server}/api/v1/song/${selectedSong}`
       );
       setSong(data);
     } catch (error) {
@@ -99,8 +140,6 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const [index, setIndex] = useState<number>(0);
-
   const nextSong = useCallback(() => {
     if (index === songs.length - 1) {
       setIndex(0);
@@ -118,30 +157,28 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
     }
   }, [index, songs]);
 
-  const [albumSong, setAlbumSong] = useState<Song[]>([]);
-  const [albumData, setAlbumData] = useState<Album | null >(null);
-
-  const fetchAlbumsSongs = useCallback(async(id: string)=>{
+  const fetchAlbumsSongs = useCallback(async (id: string) => {
     setLoading(true);
     try {
-      const {data} = await axios.get<{songs: Song[]; album: Album}>(`${server}/api/v1/album/${id}`);
-
+      const { data } = await axios.get<{ songs: Song[]; album: Album }>(
+        `${server}/api/v1/album/${id}`
+      );
       setAlbumData(data.album);
       setAlbumSong(data.songs);
     } catch (error) {
       console.log(error);
-    }finally{
+    } finally {
       setLoading(false);
     }
-  },[]);
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
       await Promise.all([fetchSongs(), fetchAlbums()]);
     };
-
     loadData();
   }, []);
+
   return (
     <SongContext.Provider
       value={{
@@ -161,9 +198,9 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
         albumSong,
         fetchSongs,
         fetchAlbums,
+        audioRef, // ✅ Context se expose karo
       }}
     >
-      {" "}
       {children}
     </SongContext.Provider>
   );
@@ -172,7 +209,7 @@ export const SongProvider: React.FC<SongProviderProps> = ({ children }) => {
 export const useSongData = (): SongContextType => {
   const context = useContext(SongContext);
   if (!context) {
-    throw new Error("useSongData must be used within  a SongProvider");
+    throw new Error("useSongData must be used within a SongProvider");
   }
   return context;
 };
